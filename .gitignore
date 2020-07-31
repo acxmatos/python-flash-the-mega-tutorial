@@ -130,3 +130,6 @@ dmypy.json
 
 # SQLite Database
 **/app.db
+
+# Logs folder
+logs/
