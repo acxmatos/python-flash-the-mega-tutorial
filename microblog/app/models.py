@@ -1,24 +1,19 @@
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import UserMixin
+import jwt
+
 from datetime import datetime
 from hashlib import md5
 from time import time
-import jwt
+from flask_login import UserMixin
+from werkzeug.security import generate_password_hash, check_password_hash
 
 from app import app, db, login
 
 
-@login.user_loader
-def load_user(id):
-    return User.query.get(int(id))
-
-
-followers = db.Table('followers',
-                     db.Column('follower_id', db.Integer,
-                               db.ForeignKey('user.id')),
-                     db.Column('followed_id', db.Integer,
-                               db.ForeignKey('user.id'))
-                     )
+followers = db.Table(
+    'followers',
+    db.Column('follower_id', db.Integer, db.ForeignKey('user.id')),
+    db.Column('followed_id', db.Integer, db.ForeignKey('user.id'))
+)
 
 
 class User(UserMixin, db.Model):
@@ -81,6 +76,11 @@ class User(UserMixin, db.Model):
         except:
             return
         return User.query.get(id)
+
+
+@login.user_loader
+def load_user(id):
+    return User.query.get(int(id))
 
 
 class Post(db.Model):
