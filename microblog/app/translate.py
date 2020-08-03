@@ -1,8 +1,8 @@
 import json
 import requests
+from flask import current_app
 from flask_babel import _
 
-from app import app
 
 def translate(text, source_language, dest_language):
     # Code based on: https://www.labnol.org/code/19909-google-translate-api
