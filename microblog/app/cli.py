@@ -13,6 +13,11 @@ def register(app):
         """Development smtp mail server commands."""
         pass
 
+    @app.cli.group()
+    def elasticsearch():
+        """Elastic Search on Docker."""
+        pass
+
     @translate.command()
     @click.argument('lang')
     def init(lang):
@@ -43,4 +48,10 @@ def register(app):
     def run():
         """Run development smtp mail server."""
         if os.system('python -m smtpd -n -c DebuggingServer localhost:8025'):
+            raise RuntimeError('run command failed')
+
+    @elasticsearch.command()
+    def run():
+        """Run Elastic Search on containers (needs local docker)."""
+        if os.system('docker run -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:7.8.1'):
             raise RuntimeError('run command failed')
