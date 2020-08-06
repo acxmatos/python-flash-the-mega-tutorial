@@ -1,0 +1,33 @@
+# Image for Microblog
+#
+# This image is built on top of microblog base image, which
+# has all the requirements pre installed. This image only
+# makes sure any new requirement that is not part of the
+# base image is correctly installed, and then updates the
+# application files, along with other small setup commands
+#
+FROM microblog-base:latest
+
+WORKDIR /home/microblog
+
+COPY requirements.txt requirements.txt
+RUN venv/bin/pip install -r requirements.txt
+
+COPY app app
+COPY migrations migrations
+COPY microblog.py config.py boot.sh ./
+
+RUN chown -R microblog:microblog ./app
+RUN chown -R microblog:microblog ./migrations
+RUN chown -R microblog:microblog ./microblog.py
+RUN chown -R microblog:microblog ./config.py
+RUN chown -R microblog:microblog ./boot.sh
+
+RUN chmod +x boot.sh
+
+ENV FLASK_APP microblog.py
+
+USER microblog
+
+EXPOSE 5000
+ENTRYPOINT ["./boot.sh"]

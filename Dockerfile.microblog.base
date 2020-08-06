@@ -1,0 +1,25 @@
+# Base image for Microblog
+#
+# This image is used as a base image for the microblog image, since
+# for alpine distributions, some libraries like gevent and numpy
+# must be built from source (using gcc), and it takes a long time to
+# run. This image installs all the requirements to run the Microblog
+# application, so we don't need to install all the requirements every
+# time we need to rebuild the image to update the application
+#
+FROM python:3.6-alpine
+
+RUN adduser -D microblog
+
+WORKDIR /home/microblog
+
+COPY requirements.txt requirements.txt
+RUN python -m venv venv
+RUN apk --update add openssl ca-certificates py-openssl wget
+RUN apk --update add --virtual build-dependencies libffi-dev openssl-dev py-pip build-base \
+  && venv/bin/pip install --upgrade pip \
+  && venv/bin/pip install -r requirements.txt \
+  && apk del build-dependencies
+RUN venv/bin/pip install gunicorn pymysql
+
+RUN chown -R microblog:microblog ./
