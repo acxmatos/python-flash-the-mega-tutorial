@@ -133,3 +133,7 @@ dmypy.json
 
 # Logs folder
 logs/
+
+# Custom environments
+venv_windows/
+venv_ubuntu/
