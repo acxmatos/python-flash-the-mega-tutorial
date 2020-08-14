@@ -1,0 +1,86 @@
+version: '2.0'
+services:
+  web:
+    image: microblog:latest
+    environment:
+      - FLASK_APP=microblog.py
+      - FLASK_ENV=development
+      - FLASK_DEBUG=0
+      - MAIL_SERVER=mail-server
+      - MAIL_PORT=1025
+      - ELASTICSEARCH_URL=http://elasticsearch-server:9200
+      - DATABASE_URL=mysql+pymysql://microblog:strongpassword@db-server/microblog
+      - REDIS_URL=redis://redis-server:6379/0
+    ports:
+      - "8000:5000"
+    links:
+      - redis:redis-server
+      - rq:rq-worker
+      - mail:mail-server
+      - elasticsearch:elasticsearch-server
+      - mysql:db-server
+    depends_on:
+      - mail
+      - mysql
+    networks:
+      - microblog-network
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - microblog-network
+  rq:
+    image: microblog
+    environment:
+      - REDIS_URL=redis://redis-server:6379/0
+      - DATABASE_URL=mysql+pymysql://microblog:strongpassword@db-server/microblog
+      - MAIL_SERVER=mail-server
+      - MAIL_PORT=1025
+    ports:
+      - "8001:5000"
+    entrypoint: venv/bin/rq worker -u redis://redis-server:6379/0 microblog-tasks
+    links:
+      - redis:redis-server
+      - mysql:db-server
+      - mail:mail-server
+    depends_on:
+      - redis
+      - mysql
+      - mail
+    networks:
+      - microblog-network
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.8.1
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      - discovery.type=single-node
+    volumes:
+      - /d/Temp/microblog/es_db:/usr/share/elasticsearch/data
+    networks:
+      - microblog-network
+  mail:
+    image: mailhog:latest
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - microblog-network
+  mysql:
+    image: mysql/mysql-server:5.7
+    environment:
+      - MYSQL_RANDOM_ROOT_PASSWORD=yes
+      - MYSQL_DATABASE=microblog
+      - MYSQL_USER=microblog
+      - MYSQL_PASSWORD=strongpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - /d/Temp/microblog/mysql_db:/var/lib/mysql
+    networks:
+      - microblog-network
+networks: 
+  microblog-network:
+    driver: bridge

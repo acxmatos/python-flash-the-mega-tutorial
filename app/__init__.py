@@ -1,6 +1,7 @@
 import os
 import rq
 import logging
+import platform
 
 from flask import Flask, request, current_app
 from flask_sqlalchemy import SQLAlchemy
@@ -41,9 +42,20 @@ def create_app(config_class=Config):
     moment.init_app(app)
     babel.init_app(app)
 
-    app.elasticsearch = Elasticsearch([app.config['ELASTICSEARCH_URL']]) if app.config['ELASTICSEARCH_URL'] else None
-    app.redis = Redis.from_url(app.config['REDIS_URL'])
-    app.task_queue = rq.Queue('microblog-tasks', connection=app.redis)
+    # Conditional initialization of Elasticsearch, Redis and RQ (Task Queue)
+    # Only created instance if the environment variable is defined
+    # Specifically for RQ, we also check if it's not running in Windows, since
+    # it this library won't run in this OS
+
+    es_url = app.config['ELASTICSEARCH_URL']
+    app.elasticsearch = Elasticsearch([es_url]) if es_url else None
+
+    app.redis = None
+    app.task_queue = None
+    redis_url = app.config['REDIS_URL']
+    if redis_url and not platform.system() == 'Windows':
+        app.redis = Redis.from_url(redis_url)
+        app.task_queue = rq.Queue('microblog-tasks', connection=app.redis)
 
     from app.errors import bp as errors_bp
     app.register_blueprint(errors_bp)

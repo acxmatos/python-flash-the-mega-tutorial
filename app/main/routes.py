@@ -18,6 +18,7 @@ def before_request():
         db.session.commit()
         if current_app.elasticsearch:
             g.search_form = SearchForm()
+        g.export_posts = True if current_app.task_queue else False
     g.locale = str(get_locale())
 
 
