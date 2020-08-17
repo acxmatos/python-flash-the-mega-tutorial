@@ -1,7 +1,7 @@
 version: '2.0'
 services:
   web:
-    image: microblog:latest
+    image: acxmatos/microblog:latest
     environment:
       - FLASK_APP=microblog.py
       - FLASK_ENV=development
@@ -31,7 +31,7 @@ services:
     networks:
       - microblog-network
   rq:
-    image: microblog
+    image: acxmatos/microblog:latest
     environment:
       - REDIS_URL=redis://redis-server:6379/0
       - DATABASE_URL=mysql+pymysql://microblog:strongpassword@db-server/microblog
@@ -62,7 +62,7 @@ services:
     networks:
       - microblog-network
   mail:
-    image: mailhog:latest
+    image: acxmatos/mailhog:latest
     ports:
       - "1025:1025"
       - "8025:8025"
